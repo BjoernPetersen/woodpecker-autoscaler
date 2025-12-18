@@ -38,6 +38,7 @@ type Provider struct {
 	commercialType   string
 	image            string
 	enableIPv6       bool
+	enableIPv4       bool
 	storage          scw.Size
 	storageType      instance.VolumeVolumeType
 	config           *config.Config
@@ -65,6 +66,10 @@ func New(_ context.Context, c *cli.Command, config *config.Config) (engine.Provi
 		return nil, fmt.Errorf("%w: scaleway-access-key", ErrParameterNotSet)
 	}
 
+	if !c.IsSet("scaleway-enable-ipv4") && !c.IsSet("scaleway-enable-ipv6") {
+		return nil, fmt.Errorf("%w: scaleway-enable-ipv4, scaleway-enable-ipv6", ErrParameterNotSet)
+	}
+
 	p := &Provider{
 		secretKey:        c.String("scaleway-secret-key"),
 		accessKey:        c.String("scaleway-access-key"),
@@ -74,6 +79,7 @@ func New(_ context.Context, c *cli.Command, config *config.Config) (engine.Provi
 		tags:             c.StringSlice("scaleway-tags"),
 		commercialType:   c.String("scaleway-instance-type"),
 		image:            c.String("scaleway-image"),
+		enableIPv4:       c.Bool("scaleway-enable-ipv4"),
 		enableIPv6:       c.Bool("scaleway-enable-ipv6"),
 		storage:          scw.Size(c.Uint64("scaleway-storage-size") * units.GB),
 		storageType:      instance.VolumeVolumeType(c.String("scaleway-storage-type")),
@@ -213,10 +219,44 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 
 	api := instance.NewAPI(p.client)
 
+	ips := make([]string, 0, 2)
+
+	if p.enableIPv4 {
+		ipRequest := instance.CreateIPRequest{
+			Zone:    zone,
+			Project: p.projectID,
+			Tags:    p.tags,
+			Type:    instance.IPTypeRoutedIPv4,
+		}
+
+		ip, err := api.CreateIP(&ipRequest, scw.WithContext(ctx))
+		if err != nil {
+			return nil, err
+		}
+
+		ips = append(ips, ip.IP.ID)
+	}
+
+	if p.enableIPv6 {
+		ipRequest := instance.CreateIPRequest{
+			Zone:    zone,
+			Project: p.projectID,
+			Tags:    p.tags,
+			Type:    instance.IPTypeRoutedIPv6,
+		}
+
+		ip, err := api.CreateIP(&ipRequest, scw.WithContext(ctx))
+		if err != nil {
+			return nil, err
+		}
+
+		ips = append(ips, ip.IP.ID)
+	}
+
 	req := instance.CreateServerRequest{
 		Zone:              zone,
 		Name:              agent.Name,
-		DynamicIPRequired: scw.BoolPtr(true),
+		DynamicIPRequired: scw.BoolPtr(false),
 		CommercialType:    p.commercialType,
 		Image:             scw.StringPtr(p.image),
 		Volumes: map[string]*instance.VolumeServerTemplate{
@@ -226,9 +266,9 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 				VolumeType: p.storageType,
 			},
 		},
-		EnableIPv6: &p.enableIPv6,
-		Project:    p.projectID,
-		Tags:       p.tags,
+		PublicIPs: scw.StringsPtr(ips),
+		Project:   p.projectID,
+		Tags:      p.tags,
 	}
 
 	res, err := api.CreateServer(&req, scw.WithContext(ctx))

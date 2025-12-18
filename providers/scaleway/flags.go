@@ -68,6 +68,12 @@ var ProviderFlags = []cli.Flag{
 		Sources:  cli.EnvVars("WOODPECKER_SCALEWAY_ENABLE_IPV6"),
 		Category: category,
 	},
+	&cli.BoolFlag{
+		Name:     "scaleway-enable-ipv4",
+		Usage:    "Enable IPv4 for the instances",
+		Sources:  cli.EnvVars("WOODPECKER_SCALEWAY_ENABLE_IPV4"),
+		Category: category,
+	},
 	&cli.StringFlag{
 		Name:     "scaleway-image",
 		Usage:    "The base image for your instance",
