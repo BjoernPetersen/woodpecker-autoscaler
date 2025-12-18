@@ -8,7 +8,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make build
 
 FROM --platform=$BUILDPLATFORM scratch
-ENV GODEBUG=netdns=go
+ENV GODEBUG="netdns=go"
 
 # copy certs from build image
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
