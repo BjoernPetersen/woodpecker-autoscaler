@@ -221,7 +221,7 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 			"0": {
 				Boot:       scw.BoolPtr(true),
 				Size:       scw.SizePtr(p.storage),
-				VolumeType: instance.VolumeVolumeTypeBSSD,
+				VolumeType: instance.VolumeVolumeTypeSbsVolume,
 			},
 		},
 		EnableIPv6: &p.enableIPv6,
