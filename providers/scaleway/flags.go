@@ -75,6 +75,19 @@ var ProviderFlags = []cli.Flag{
 		Sources:  cli.EnvVars("WOODPECKER_SCALEWAY_ENABLE_IPV6"),
 		Category: category,
 	},
+	&cli.BoolFlag{
+		Name:     "scaleway-enable-ipv4",
+		Usage:    "Enable IPv4 for the instances",
+		Sources:  cli.EnvVars("WOODPECKER_SCALEWAY_ENABLE_IPV4"),
+		Category: category,
+	},
+	&cli.StringFlag{
+		Name:     "scaleway-image",
+		Usage:    "The base image for your instance",
+		Sources:  cli.EnvVars("WOODPECKER_SCALEWAY_IMAGE"),
+		Category: category,
+		Value:    "ubuntu_jammy",
+	},
 	&cli.Uint64Flag{
 		Name:     "scaleway-storage-size",
 		Usage:    "How much storage to provision for your agents in GB",
