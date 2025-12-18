@@ -24,6 +24,7 @@ type provider struct {
 	prefix      string
 	tags        []string
 	images      []string
+	enableIPv4  bool
 	enableIPv6  bool
 	storage     scw.Size
 	storageType instance.VolumeVolumeType
@@ -50,6 +51,9 @@ func New(ctx context.Context, c *cli.Command, config *config.Config) (types.Prov
 	if !c.IsSet("scaleway-tags") {
 		log.Warn().Msg("\"WOODPECKER_SCALEWAY_TAGS\" is not set, all scaleway instances are managed by autoscaler!")
 	}
+	if !c.IsSet("scaleway-enable-ipv4") && !c.IsSet("scaleway-enable-ipv6") {
+		return nil, fmt.Errorf("%w: scaleway-enable-ipv4, scaleway-enable-ipv6", ErrParameterNotSet)
+	}
 
 	defaultProjectID := c.String("scaleway-project")
 
@@ -59,6 +63,7 @@ func New(ctx context.Context, c *cli.Command, config *config.Config) (types.Prov
 		prefix:      c.String("scaleway-prefix"),
 		tags:        c.StringSlice("scaleway-tags"),
 		images:      c.StringSlice("scaleway-images"),
+		enableIPv4:  c.Bool("scaleway-enable-ipv4"),
 		enableIPv6:  c.Bool("scaleway-enable-ipv6"),
 		storage:     scw.Size(c.Uint64("scaleway-storage-size") * units.GB),
 		storageType: instance.VolumeVolumeType(c.String("scaleway-storage-type")),
@@ -143,12 +148,76 @@ func (p *provider) createAndBoot(ctx context.Context, agent *woodpecker.Agent, c
 	return err
 }
 
+func (p *provider) createIP(ctx context.Context, zone scw.Zone, ipType instance.IPType) (string, error) {
+	api := instance.NewAPI(p.client)
+
+	ipRequest := instance.CreateIPRequest{
+		Zone:    zone,
+		Project: p.projectID,
+		Tags:    p.tags,
+		Type:    ipType,
+	}
+
+	ip, err := api.CreateIP(&ipRequest, scw.WithContext(ctx))
+	if err != nil {
+		return "", err
+	}
+
+	return ip.IP.ID, nil
+}
+
+func combineErrors(collectedErrs, newErr error) error {
+	if newErr != nil {
+		if collectedErrs == nil {
+			collectedErrs = newErr
+		} else {
+			collectedErrs = fmt.Errorf("%w; %w", collectedErrs, newErr)
+		}
+	}
+
+	return collectedErrs
+}
+
+func (p *provider) deleteIP(ctx context.Context, zone scw.Zone, ipID string) error {
+	api := instance.NewAPI(p.client)
+	req := instance.DeleteIPRequest{
+		Zone: zone,
+		IP:   ipID,
+	}
+	return api.DeleteIP(&req, scw.WithContext(ctx))
+}
+
 func (p *provider) createInstance(ctx context.Context, agent *woodpecker.Agent, c deployCandidate) (*instance.Server, error) {
 	api := instance.NewAPI(p.client)
-	res, err := api.CreateServer(&instance.CreateServerRequest{
+
+	ipIDs := make([]string, 0, 2)
+
+	if p.enableIPv4 {
+		ip, err := p.createIP(ctx, c.zone, instance.IPTypeRoutedIPv4)
+		if err != nil {
+			return nil, err
+		}
+
+		ipIDs = append(ipIDs, ip)
+	}
+
+	if p.enableIPv6 {
+		ip, err := p.createIP(ctx, c.zone, instance.IPTypeRoutedIPv6)
+		if err != nil {
+			for _, ipID := range ipIDs {
+				cleanupErr := p.deleteIP(ctx, c.zone, ipID)
+				err = combineErrors(err, cleanupErr)
+			}
+			return nil, err
+		}
+
+		ipIDs = append(ipIDs, ip)
+	}
+
+	req := instance.CreateServerRequest{
 		Zone:              c.zone,
 		Name:              agent.Name,
-		DynamicIPRequired: scw.BoolPtr(true),
+		DynamicIPRequired: scw.BoolPtr(false),
 		CommercialType:    c.rawType,
 		Image:             scw.StringPtr(c.imageID),
 		Volumes: map[string]*instance.VolumeServerTemplate{
@@ -158,11 +227,18 @@ func (p *provider) createInstance(ctx context.Context, agent *woodpecker.Agent, 
 				VolumeType: p.storageType,
 			},
 		},
-		EnableIPv6: &p.enableIPv6,
-		Project:    p.projectID,
-		Tags:       p.tags,
-	}, scw.WithContext(ctx))
+		PublicIPs: scw.StringsPtr(ipIDs),
+		Project:   p.projectID,
+		Tags:      p.tags,
+	}
+
+	res, err := api.CreateServer(&req, scw.WithContext(ctx))
 	if err != nil {
+		for _, ipID := range ipIDs {
+			cleanupErr := p.deleteIP(ctx, c.zone, ipID)
+			err = combineErrors(err, cleanupErr)
+		}
+
 		return nil, err
 	}
 	return res.Server, nil
@@ -200,18 +276,25 @@ func (p *provider) deleteInstance(ctx context.Context, inst *instance.Server) er
 	blockAPI := block.NewAPI(p.client)
 
 	// Capture volumes before deletion (server deletion detaches them)
+	ips := inst.PublicIPs
 	volumes := inst.Volumes
 
 	// Delete server first
-	if err := api.DeleteServer(&instance.DeleteServerRequest{
+	err := api.DeleteServer(&instance.DeleteServerRequest{
 		Zone:     inst.Zone,
 		ServerID: inst.ID,
-	}, scw.WithContext(ctx)); err != nil {
+	}, scw.WithContext(ctx))
+	if err != nil {
 		return err
 	}
 
-	// Delete volumes - collect all errors
 	var errs []error
+
+	for _, ip := range ips {
+		err = p.deleteIP(ctx, inst.Zone, ip.ID)
+		errs = append(errs, err)
+	}
+
 	for _, volume := range volumes {
 		switch volume.VolumeType {
 		case instance.VolumeServerVolumeTypeLSSD:
