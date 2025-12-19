@@ -190,7 +190,8 @@ func (p *provider) deleteIP(ctx context.Context, zone scw.Zone, ipID string) err
 func (p *provider) createInstance(ctx context.Context, agent *woodpecker.Agent, c deployCandidate) (*instance.Server, error) {
 	api := instance.NewAPI(p.client)
 
-	ipIDs := make([]string, 0, 2)
+	const maxIPCount = 2
+	ipIDs := make([]string, 0, maxIPCount)
 
 	if p.enableIPv4 {
 		ip, err := p.createIP(ctx, c.zone, instance.IPTypeRoutedIPv4)
