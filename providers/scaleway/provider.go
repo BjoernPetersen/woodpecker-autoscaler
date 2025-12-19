@@ -205,6 +205,50 @@ func (p *Provider) getAllInstances(ctx context.Context) ([]*instance.Server, err
 	return instances, nil
 }
 
+func (p *Provider) createIP(ctx context.Context, api *instance.API, zone scw.Zone, ipType instance.IPType) (string, error) {
+	ipRequest := instance.CreateIPRequest{
+		Zone:    zone,
+		Project: p.projectID,
+		Tags:    p.tags,
+		Type:    ipType,
+	}
+
+	ip, err := api.CreateIP(&ipRequest, scw.WithContext(ctx))
+	if err != nil {
+		return "", err
+	}
+
+	return ip.IP.ID, nil
+}
+
+func combineErrors(collectedErrs error, newError error) error {
+	if newError != nil {
+		if collectedErrs == nil {
+			collectedErrs = newError
+		} else {
+			collectedErrs = fmt.Errorf("%w; %w", collectedErrs, newError)
+		}
+	}
+
+	return collectedErrs
+}
+
+func (p *Provider) deleteIP(ctx context.Context, api *instance.API, zone scw.Zone, ipID string) error {
+	req := instance.DeleteIPRequest{
+		Zone: zone,
+		IP:   ipID,
+	}
+	return api.DeleteIP(&req, scw.WithContext(ctx))
+}
+
+func (p *Provider) deleteVolume(ctx context.Context, api *instance.API, zone scw.Zone, volumeID string) error {
+	req := instance.DeleteVolumeRequest{
+		Zone:     zone,
+		VolumeID: volumeID,
+	}
+	return api.DeleteVolume(&req, scw.WithContext(ctx))
+}
+
 func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) (*instance.Server, error) {
 	if err := p.resolveZones(); err != nil {
 		return nil, err
@@ -217,38 +261,28 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 
 	api := instance.NewAPI(p.client)
 
-	ips := make([]string, 0, 2)
+	ipIDs := make([]string, 0, 2)
 
 	if p.enableIPv4 {
-		ipRequest := instance.CreateIPRequest{
-			Zone:    zone,
-			Project: p.projectID,
-			Tags:    p.tags,
-			Type:    instance.IPTypeRoutedIPv4,
-		}
-
-		ip, err := api.CreateIP(&ipRequest, scw.WithContext(ctx))
+		ip, err := p.createIP(ctx, api, zone, instance.IPTypeRoutedIPv4)
 		if err != nil {
 			return nil, err
 		}
 
-		ips = append(ips, ip.IP.ID)
+		ipIDs = append(ipIDs, ip)
 	}
 
 	if p.enableIPv6 {
-		ipRequest := instance.CreateIPRequest{
-			Zone:    zone,
-			Project: p.projectID,
-			Tags:    p.tags,
-			Type:    instance.IPTypeRoutedIPv6,
-		}
-
-		ip, err := api.CreateIP(&ipRequest, scw.WithContext(ctx))
+		ip, err := p.createIP(ctx, api, zone, instance.IPTypeRoutedIPv6)
 		if err != nil {
+			for _, ipID := range ipIDs {
+				cleanupErr := p.deleteIP(ctx, api, zone, ipID)
+				err = combineErrors(err, cleanupErr)
+			}
 			return nil, err
 		}
 
-		ips = append(ips, ip.IP.ID)
+		ipIDs = append(ipIDs, ip)
 	}
 
 	req := instance.CreateServerRequest{
@@ -264,13 +298,18 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 				VolumeType: instance.VolumeVolumeTypeSbsVolume,
 			},
 		},
-		PublicIPs: scw.StringsPtr(ips),
+		PublicIPs: scw.StringsPtr(ipIDs),
 		Project:   p.projectID,
 		Tags:      p.tags,
 	}
 
 	res, err := api.CreateServer(&req, scw.WithContext(ctx))
 	if err != nil {
+		for _, ipID := range ipIDs {
+			cleanupErr := p.deleteIP(ctx, api, zone, ipID)
+			err = combineErrors(err, cleanupErr)
+		}
+
 		return nil, err
 	}
 
@@ -308,10 +347,32 @@ func (p *Provider) deleteInstance(ctx context.Context, inst *instance.Server) er
 
 	api := instance.NewAPI(p.client)
 
-	return api.DeleteServer(&instance.DeleteServerRequest{
+	ips := inst.PublicIPs
+	volumes := inst.Volumes
+
+	err = api.DeleteServer(&instance.DeleteServerRequest{
 		Zone:     inst.Zone,
 		ServerID: inst.ID,
 	}, scw.WithContext(ctx))
+
+	if err != nil {
+		return err
+	}
+
+	var collectedErrs error = nil
+	for _, ip := range ips {
+		err = p.deleteIP(ctx, api, inst.Zone, ip.ID)
+		collectedErrs = combineErrors(collectedErrs, err)
+	}
+
+	for _, volume := range volumes {
+		if volume.VolumeType == instance.VolumeServerVolumeTypeSbsVolume {
+			err = p.deleteVolume(ctx, api, inst.Zone, volume.ID)
+			collectedErrs = combineErrors(collectedErrs, err)
+		}
+	}
+
+	return collectedErrs
 }
 
 func (p *Provider) bootInstance(ctx context.Context, inst *instance.Server) (*instance.ServerActionResponse, error) {
