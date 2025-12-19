@@ -224,12 +224,12 @@ func (p *Provider) createIP(ctx context.Context, zone scw.Zone, ipType instance.
 	return ip.IP.ID, nil
 }
 
-func combineErrors(collectedErrs error, newError error) error {
-	if newError != nil {
+func combineErrors(collectedErrs, newErr error) error {
+	if newErr != nil {
 		if collectedErrs == nil {
-			collectedErrs = newError
+			collectedErrs = newErr
 		} else {
-			collectedErrs = fmt.Errorf("%w; %w", collectedErrs, newError)
+			collectedErrs = fmt.Errorf("%w; %w", collectedErrs, newErr)
 		}
 	}
 
@@ -360,7 +360,6 @@ func (p *Provider) deleteInstance(ctx context.Context, inst *instance.Server) er
 		Zone:     inst.Zone,
 		ServerID: inst.ID,
 	}, scw.WithContext(ctx))
-
 	if err != nil {
 		return err
 	}
