@@ -103,13 +103,19 @@ func Test_calcAgents(t *testing.T) {
 	})
 
 	t.Run("should not create new agent (availableAgents)", func(t *testing.T) {
-		autoscaler := Autoscaler{client: &MockClient{
-			workers: 2,
-			pending: 2,
-		}, config: &config.Config{
-			WorkflowsPerAgent: 1,
-			MaxAgents:         2,
-		}}
+		autoscaler := Autoscaler{
+			client: &MockClient{
+				running: 2,
+				pending: 2,
+			}, config: &config.Config{
+				WorkflowsPerAgent: 1,
+				MaxAgents:         2,
+			},
+			agents: []*woodpecker.Agent{
+				{Name: "pool-1-agent-1234"},
+				{Name: "pool-1-agent-1235"},
+			},
+		}
 
 		value, _ := autoscaler.calcAgents(t.Context())
 		assert.Equal(t, float64(0), value)
@@ -152,7 +158,7 @@ func Test_getQueueInfo(t *testing.T) {
 				pending: 2,
 			},
 			config: &config.Config{
-				FilterLabels: map[string]string{"arch": "amd64"},
+				FilterLabels: map[string]string{"arch": "arm64"},
 			},
 		}
 
