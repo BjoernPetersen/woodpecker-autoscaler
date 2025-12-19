@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -48,6 +49,14 @@ func run(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
+
+	_, hasLabels := agentEnvironment["WOODPECKER_AGENT_LABELS"]
+	if hasLabels {
+		return fmt.Errorf("pass agent-labels directly instead of including WOODPECKER_AGENT_LABELS in agent-env")
+	}
+
+	agentLabels := strings.Join(cmd.StringSlice("agent-labels"), ",")
+	agentEnvironment["WOODPECKER_AGENT_LABELS"] = agentLabels
 
 	labelFilters, err := engine.SliceToMap(cmd.StringSlice("filter-labels"), "=")
 	if err != nil {
