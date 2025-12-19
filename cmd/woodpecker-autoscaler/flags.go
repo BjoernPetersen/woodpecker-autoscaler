@@ -107,10 +107,9 @@ var flags = []cli.Flag{
 		Usage:   "additional agent environment variables as list with key=value pairs",
 		Sources: cli.EnvVars("WOODPECKER_AGENT_ENV"),
 	},
-	&cli.StringFlag{
+	&cli.StringSliceFlag{
 		Name:    "filter-labels",
-		Value:   "",
-		Usage:   "filter for specific tasks using labels",
+		Usage:   "filter for specific tasks using labels, given as list of key=value pairs. Only tasks where ALL filters match are considered.",
 		Sources: cli.EnvVars("WOODPECKER_FILTER_LABELS"),
 	},
 }
