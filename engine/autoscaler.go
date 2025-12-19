@@ -290,44 +290,43 @@ func (a *Autoscaler) cleanupStaleAgents(ctx context.Context) error {
 	return nil
 }
 
-func (a *Autoscaler) getQueueInfo(_ context.Context) (freeTasks, runningTasks, pendingTasks int, err error) {
+func (a *Autoscaler) getQueueInfo(_ context.Context) (runningTasks, pendingTasks int, err error) {
 	queueInfo, err := a.client.QueueInfo()
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("error from QueueInfo: %s", err.Error())
+		return 0, 0, fmt.Errorf("error from QueueInfo: %s", err.Error())
 	}
 
 	filterLabels := a.config.FilterLabels
 	if filterLabels == nil {
-		return queueInfo.Stats.Workers, queueInfo.Stats.Running, queueInfo.Stats.Pending, nil
+		return queueInfo.Stats.Running, queueInfo.Stats.Pending, nil
 	}
 
 	running := countTasksByLabels(queueInfo.Running, filterLabels)
 	pending := countTasksByLabels(queueInfo.Pending, filterLabels)
 
-	return queueInfo.Stats.Workers, running, pending, nil
+	return running, pending, nil
 }
 
 func (a *Autoscaler) calcAgents(ctx context.Context) (float64, error) {
-	freeTasks, runningTasks, pendingTasks, err := a.getQueueInfo(ctx)
+	runningTasks, pendingTasks, err := a.getQueueInfo(ctx)
 	if err != nil {
 		return 0, err
 	}
 
-	log.Debug().Msgf("queue info: freeTasks = %v runningTasks = %v pendingTasks = %v", freeTasks, runningTasks, pendingTasks)
-	availableAgents := math.Ceil(float64(freeTasks+runningTasks) / float64((a.config.WorkflowsPerAgent)))
-	reqAgents := math.Ceil(float64(pendingTasks+runningTasks) / float64(a.config.WorkflowsPerAgent))
+	log.Debug().Msgf("queue info: runningTasks = %v pendingTasks = %v", runningTasks, pendingTasks)
+	reqAgents := int(math.Ceil(float64(pendingTasks+runningTasks) / float64(a.config.WorkflowsPerAgent)))
 
 	availablePoolAgents := len(a.getPoolAgents(true))
-	maxUp := float64(a.config.MaxAgents - availablePoolAgents)
-	maxDown := float64(availablePoolAgents - a.config.MinAgents)
+	maxUp := a.config.MaxAgents - availablePoolAgents
+	maxDown := availablePoolAgents - a.config.MinAgents
 
-	reqPoolAgents := math.Ceil(reqAgents - (availableAgents + float64(availablePoolAgents)))
-	reqPoolAgents = math.Max(reqPoolAgents, -maxDown)
-	reqPoolAgents = math.Min(reqPoolAgents, maxUp)
+	reqPoolAgents := reqAgents - availablePoolAgents
+	reqPoolAgents = max(reqPoolAgents, -maxDown)
+	reqPoolAgents = min(reqPoolAgents, maxUp)
 
-	log.Debug().Msgf("capacity info: agents = %v/%v pool = %v/%v limits = %v/%v", availableAgents, reqAgents, availablePoolAgents, reqPoolAgents, maxUp, maxDown)
+	log.Debug().Msgf("capacity info: agents = %v/%v required = %v limits = %v/%v", availablePoolAgents, reqAgents, reqPoolAgents, maxUp, maxDown)
 
-	return reqPoolAgents, nil
+	return float64(reqPoolAgents), nil
 }
 
 // Reconcile periodically checks the status of the agent pool and adjusts it to match
