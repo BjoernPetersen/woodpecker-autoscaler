@@ -59,6 +59,15 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		agentEnvironment[before] = after
 	}
 
+	labelFilters := make(map[string]string)
+	for _, env := range cmd.StringSlice("filter-labels") {
+		key, value, _ := strings.Cut(env, "=")
+		if key == "" || value == "" {
+			return fmt.Errorf("invalid label filter: %s", env)
+		}
+		labelFilters[key] = value
+	}
+
 	config := &config.Config{
 		MinAgents:         cmd.Int("min-agents"),
 		MaxAgents:         cmd.Int("max-agents"),
@@ -67,7 +76,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		GRPCAddress:       cmd.String("grpc-addr"),
 		GRPCSecure:        cmd.Bool("grpc-secure"),
 		Image:             cmd.String("agent-image"),
-		FilterLabels:      cmd.String("filter-labels"),
+		FilterLabels:      labelFilters,
 		UserData:          cmd.String("provider-user-data"),
 		Environment:       agentEnvironment,
 	}
