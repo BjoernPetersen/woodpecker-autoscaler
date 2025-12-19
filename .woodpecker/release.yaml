@@ -6,9 +6,12 @@ when:
 
 variables:
   - &buildx_plugin 'docker.io/woodpeckerci/plugin-docker-buildx:6.0.3'
-  - &repo 'woodpeckerci/autoscaler'
-  - &platforms 'linux/arm/v7,linux/arm64/v8,linux/amd64,linux/ppc64le'
+  - &repo 'ghcr.io/bjoernpetersen/woodpecker-autoscaler'
+  - &platforms 'linux/arm64/v8,linux/amd64'
   - &golang_image 'docker.io/golang:1.25'
+
+labels:
+  forge: github
 
 steps:
   - name: vendor
