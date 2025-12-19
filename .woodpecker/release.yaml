@@ -8,7 +8,8 @@ variables:
   - &buildx_plugin 'docker.io/woodpeckerci/plugin-docker-buildx:6.0.3'
   - &registry 'https://ghcr.io/v1/'
   - &repo 'bjoernpetersen/woodpecker-autoscaler'
-  - &platforms 'linux/arm64/v8,linux/amd64'
+  #- &platforms 'linux/arm64/v8,linux/amd64'
+  - &platforms 'linux/amd64'
   - &golang_image 'docker.io/golang:1.25'
 
 labels:
