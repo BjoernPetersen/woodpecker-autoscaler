@@ -38,18 +38,21 @@ write_files:
 - path: /root/docker-compose.yml
   content: |
     # docker-compose.yml
-    version: '3'
     services:
       woodpecker-agent:
         image: {{ .Image }}
         restart: always
+        networks:
+          default: {}
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
         environment:
           {{- range $key, $value := .Environment }}
           - {{ $key }}={{ $value }}
           {{- end }}
-
+    networks:
+      default:
+        enable_ipv6: true
 runcmd:
   - sh -xc "cd /root; docker compose up -d"
 
