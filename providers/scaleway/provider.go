@@ -268,7 +268,8 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 
 	api := instance.NewAPI(p.client)
 
-	ipIDs := make([]string, 0, 2)
+	const maxIPCount = 2
+	ipIDs := make([]string, 0, maxIPCount)
 
 	if p.enableIPv4 {
 		ip, err := p.createIP(ctx, zone, instance.IPTypeRoutedIPv4)
