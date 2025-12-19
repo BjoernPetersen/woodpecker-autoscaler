@@ -8,13 +8,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/docker/go-units"
 	"github.com/rs/zerolog/log"
-	"github.com/scaleway/scaleway-sdk-go/api/block/v1"
-	"github.com/scaleway/scaleway-sdk-go/api/instance/v1"
 	"github.com/scaleway/scaleway-sdk-go/scw"
-	"github.com/urfave/cli/v3"
-
 	"go.woodpecker-ci.org/autoscaler/config"
 	"go.woodpecker-ci.org/autoscaler/engine"
 	"go.woodpecker-ci.org/woodpecker/v3/woodpecker-go/woodpecker"
@@ -208,6 +203,54 @@ func (p *Provider) getAllInstances(ctx context.Context) ([]*instance.Server, err
 	return instances, nil
 }
 
+func (p *Provider) createIP(ctx context.Context, zone scw.Zone, ipType instance.IPType) (string, error) {
+	api := instance.NewAPI(p.client)
+
+	ipRequest := instance.CreateIPRequest{
+		Zone:    zone,
+		Project: p.projectID,
+		Tags:    p.tags,
+		Type:    ipType,
+	}
+
+	ip, err := api.CreateIP(&ipRequest, scw.WithContext(ctx))
+	if err != nil {
+		return "", err
+	}
+
+	return ip.IP.ID, nil
+}
+
+func combineErrors(collectedErrs error, newError error) error {
+	if newError != nil {
+		if collectedErrs == nil {
+			collectedErrs = newError
+		} else {
+			collectedErrs = fmt.Errorf("%w; %w", collectedErrs, newError)
+		}
+	}
+
+	return collectedErrs
+}
+
+func (p *Provider) deleteIP(ctx context.Context, zone scw.Zone, ipID string) error {
+	api := instance.NewAPI(p.client)
+	req := instance.DeleteIPRequest{
+		Zone: zone,
+		IP:   ipID,
+	}
+	return api.DeleteIP(&req, scw.WithContext(ctx))
+}
+
+func (p *Provider) deleteVolume(ctx context.Context, zone scw.Zone, volumeID string) error {
+	api := block.NewAPI(p.client)
+	req := block.DeleteVolumeRequest{
+		Zone:     zone,
+		VolumeID: volumeID,
+	}
+	return api.DeleteVolume(&req, scw.WithContext(ctx))
+}
+
 func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) (*instance.Server, error) {
 	if err := p.resolveZones(); err != nil {
 		return nil, err
@@ -220,38 +263,28 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 
 	api := instance.NewAPI(p.client)
 
-	ips := make([]string, 0, 2)
+	ipIDs := make([]string, 0, 2)
 
 	if p.enableIPv4 {
-		ipRequest := instance.CreateIPRequest{
-			Zone:    zone,
-			Project: p.projectID,
-			Tags:    p.tags,
-			Type:    instance.IPTypeRoutedIPv4,
-		}
-
-		ip, err := api.CreateIP(&ipRequest, scw.WithContext(ctx))
+		ip, err := p.createIP(ctx, zone, instance.IPTypeRoutedIPv4)
 		if err != nil {
 			return nil, err
 		}
 
-		ips = append(ips, ip.IP.ID)
+		ipIDs = append(ipIDs, ip)
 	}
 
 	if p.enableIPv6 {
-		ipRequest := instance.CreateIPRequest{
-			Zone:    zone,
-			Project: p.projectID,
-			Tags:    p.tags,
-			Type:    instance.IPTypeRoutedIPv6,
-		}
-
-		ip, err := api.CreateIP(&ipRequest, scw.WithContext(ctx))
+		ip, err := p.createIP(ctx, zone, instance.IPTypeRoutedIPv6)
 		if err != nil {
+			for _, ipID := range ipIDs {
+				cleanupErr := p.deleteIP(ctx, zone, ipID)
+				err = combineErrors(err, cleanupErr)
+			}
 			return nil, err
 		}
 
-		ips = append(ips, ip.IP.ID)
+		ipIDs = append(ipIDs, ip)
 	}
 
 	req := instance.CreateServerRequest{
@@ -267,13 +300,18 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 				VolumeType: p.storageType,
 			},
 		},
-		PublicIPs: scw.StringsPtr(ips),
+		PublicIPs: scw.StringsPtr(ipIDs),
 		Project:   p.projectID,
 		Tags:      p.tags,
 	}
 
 	res, err := api.CreateServer(&req, scw.WithContext(ctx))
 	if err != nil {
+		for _, ipID := range ipIDs {
+			cleanupErr := p.deleteIP(ctx, zone, ipID)
+			err = combineErrors(err, cleanupErr)
+		}
+
 		return nil, err
 	}
 
@@ -313,19 +351,25 @@ func (p *Provider) deleteInstance(ctx context.Context, inst *instance.Server) er
 	blockAPI := block.NewAPI(p.client)
 
 	// Capture volumes before deletion (server deletion detaches them)
+	ips := inst.PublicIPs
 	volumes := inst.Volumes
 
-	// Delete server first
 	err = api.DeleteServer(&instance.DeleteServerRequest{
 		Zone:     inst.Zone,
 		ServerID: inst.ID,
 	}, scw.WithContext(ctx))
+
 	if err != nil {
 		return err
 	}
 
-	// Delete volumes - collect all errors
 	var errs []error
+
+	for _, ip := range ips {
+		err = p.deleteIP(ctx, inst.Zone, ip.ID)
+		errs = append(errs, err)
+	}
+
 	for _, volume := range volumes {
 		switch volume.VolumeType {
 		case instance.VolumeServerVolumeTypeLSSD:
