@@ -104,11 +104,15 @@ write_files:
 - path: /root/docker-compose.yml
   content: |
     # docker-compose.yml
-    version: '3'
+    networks:
+      default:
+        enable_ipv6: true
     services:
       woodpecker-agent:
         image: {{ .Image }}
         restart: always
+        networks:
+          default: {}
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
         environment:
