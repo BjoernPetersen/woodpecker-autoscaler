@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -45,27 +44,14 @@ func setupProvider(ctx context.Context, cmd *cli.Command, config *config.Config)
 func run(ctx context.Context, cmd *cli.Command) error {
 	log.Log().Msgf("starting autoscaler with log-level=%s", zerolog.GlobalLevel().String())
 
-	client, err := server.NewClient(ctx, cmd)
+	agentEnvironment, err := engine.SliceToMap(cmd.StringSlice("agent-env"), "=")
 	if err != nil {
 		return err
 	}
 
-	agentEnvironment := make(map[string]string)
-	for _, env := range cmd.StringSlice("agent-env") {
-		before, after, _ := strings.Cut(env, "=")
-		if before == "" || after == "" {
-			return fmt.Errorf("invalid agent environment variable: %s", env)
-		}
-		agentEnvironment[before] = after
-	}
-
-	labelFilters := make(map[string]string)
-	for _, env := range cmd.StringSlice("filter-labels") {
-		key, value, _ := strings.Cut(env, "=")
-		if key == "" || value == "" {
-			return fmt.Errorf("invalid label filter: %s", env)
-		}
-		labelFilters[key] = value
+	labelFilters, err := engine.SliceToMap(cmd.StringSlice("filter-labels"), "=")
+	if err != nil {
+		return err
 	}
 
 	config := &config.Config{
@@ -86,6 +72,10 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
+	client, err := server.NewClient(ctx, cmd)
+	if err != nil {
+		return err
+	}
 	autoscaler := engine.NewAutoscaler(provider, client, config)
 
 	config.AgentInactivityTimeout, err = time.ParseDuration(cmd.String("agent-inactivity-timeout"))
