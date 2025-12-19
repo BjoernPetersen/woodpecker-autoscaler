@@ -10,6 +10,7 @@ import (
 
 	"github.com/docker/go-units"
 	"github.com/rs/zerolog/log"
+	"github.com/scaleway/scaleway-sdk-go/api/block/v1"
 	"github.com/scaleway/scaleway-sdk-go/api/instance/v1"
 	"github.com/scaleway/scaleway-sdk-go/scw"
 	"github.com/urfave/cli/v3"
@@ -205,7 +206,9 @@ func (p *Provider) getAllInstances(ctx context.Context) ([]*instance.Server, err
 	return instances, nil
 }
 
-func (p *Provider) createIP(ctx context.Context, api *instance.API, zone scw.Zone, ipType instance.IPType) (string, error) {
+func (p *Provider) createIP(ctx context.Context, zone scw.Zone, ipType instance.IPType) (string, error) {
+	api := instance.NewAPI(p.client)
+
 	ipRequest := instance.CreateIPRequest{
 		Zone:    zone,
 		Project: p.projectID,
@@ -233,7 +236,8 @@ func combineErrors(collectedErrs error, newError error) error {
 	return collectedErrs
 }
 
-func (p *Provider) deleteIP(ctx context.Context, api *instance.API, zone scw.Zone, ipID string) error {
+func (p *Provider) deleteIP(ctx context.Context, zone scw.Zone, ipID string) error {
+	api := instance.NewAPI(p.client)
 	req := instance.DeleteIPRequest{
 		Zone: zone,
 		IP:   ipID,
@@ -241,8 +245,9 @@ func (p *Provider) deleteIP(ctx context.Context, api *instance.API, zone scw.Zon
 	return api.DeleteIP(&req, scw.WithContext(ctx))
 }
 
-func (p *Provider) deleteVolume(ctx context.Context, api *instance.API, zone scw.Zone, volumeID string) error {
-	req := instance.DeleteVolumeRequest{
+func (p *Provider) deleteVolume(ctx context.Context, zone scw.Zone, volumeID string) error {
+	api := block.NewAPI(p.client)
+	req := block.DeleteVolumeRequest{
 		Zone:     zone,
 		VolumeID: volumeID,
 	}
@@ -264,7 +269,7 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 	ipIDs := make([]string, 0, 2)
 
 	if p.enableIPv4 {
-		ip, err := p.createIP(ctx, api, zone, instance.IPTypeRoutedIPv4)
+		ip, err := p.createIP(ctx, zone, instance.IPTypeRoutedIPv4)
 		if err != nil {
 			return nil, err
 		}
@@ -273,10 +278,10 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 	}
 
 	if p.enableIPv6 {
-		ip, err := p.createIP(ctx, api, zone, instance.IPTypeRoutedIPv6)
+		ip, err := p.createIP(ctx, zone, instance.IPTypeRoutedIPv6)
 		if err != nil {
 			for _, ipID := range ipIDs {
-				cleanupErr := p.deleteIP(ctx, api, zone, ipID)
+				cleanupErr := p.deleteIP(ctx, zone, ipID)
 				err = combineErrors(err, cleanupErr)
 			}
 			return nil, err
@@ -306,7 +311,7 @@ func (p *Provider) createInstance(ctx context.Context, agent *woodpecker.Agent) 
 	res, err := api.CreateServer(&req, scw.WithContext(ctx))
 	if err != nil {
 		for _, ipID := range ipIDs {
-			cleanupErr := p.deleteIP(ctx, api, zone, ipID)
+			cleanupErr := p.deleteIP(ctx, zone, ipID)
 			err = combineErrors(err, cleanupErr)
 		}
 
@@ -361,13 +366,13 @@ func (p *Provider) deleteInstance(ctx context.Context, inst *instance.Server) er
 
 	var collectedErrs error = nil
 	for _, ip := range ips {
-		err = p.deleteIP(ctx, api, inst.Zone, ip.ID)
+		err = p.deleteIP(ctx, inst.Zone, ip.ID)
 		collectedErrs = combineErrors(collectedErrs, err)
 	}
 
 	for _, volume := range volumes {
 		if volume.VolumeType == instance.VolumeServerVolumeTypeSbsVolume {
-			err = p.deleteVolume(ctx, api, inst.Zone, volume.ID)
+			err = p.deleteVolume(ctx, inst.Zone, volume.ID)
 			collectedErrs = combineErrors(collectedErrs, err)
 		}
 	}
