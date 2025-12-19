@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -297,17 +296,13 @@ func (a *Autoscaler) getQueueInfo(_ context.Context) (freeTasks, runningTasks, p
 		return 0, 0, 0, fmt.Errorf("error from QueueInfo: %s", err.Error())
 	}
 
-	if a.config.FilterLabels == "" {
+	filterLabels := a.config.FilterLabels
+	if filterLabels == nil {
 		return queueInfo.Stats.Workers, queueInfo.Stats.Running, queueInfo.Stats.Pending, nil
 	}
 
-	labelFilterKey, labelFilterValue, ok := strings.Cut(a.config.FilterLabels, "=")
-	if !ok {
-		return 0, 0, 0, fmt.Errorf("invalid labels filter: %s", a.config.FilterLabels)
-	}
-
-	running := countTasksByLabel(queueInfo.Running, labelFilterKey, labelFilterValue)
-	pending := countTasksByLabel(queueInfo.Pending, labelFilterKey, labelFilterValue)
+	running := countTasksByLabels(queueInfo.Running, filterLabels)
+	pending := countTasksByLabels(queueInfo.Pending, filterLabels)
 
 	return queueInfo.Stats.Workers, running, pending, nil
 }
