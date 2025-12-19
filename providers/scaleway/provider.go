@@ -366,7 +366,7 @@ func (p *Provider) deleteInstance(ctx context.Context, inst *instance.Server) er
 		return err
 	}
 
-	var collectedErrs error = nil
+	var collectedErrs error
 	for _, ip := range ips {
 		err = p.deleteIP(ctx, inst.Zone, ip.ID)
 		collectedErrs = combineErrors(collectedErrs, err)
