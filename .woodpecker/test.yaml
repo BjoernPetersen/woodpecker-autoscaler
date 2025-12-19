@@ -1,6 +1,9 @@
 when:
   - event: pull_request
 
+labels:
+  forge: github
+
 variables:
   - &golang_image 'docker.io/golang:1.25'
   - &when
