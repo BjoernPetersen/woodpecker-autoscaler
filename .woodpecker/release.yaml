@@ -6,9 +6,13 @@ when:
 
 variables:
   - &buildx_plugin 'docker.io/woodpeckerci/plugin-docker-buildx:6.0.4'
-  - &repo 'woodpeckerci/autoscaler'
-  - &platforms 'linux/arm/v7,linux/arm64/v8,linux/amd64,linux/ppc64le'
+  - &registry 'https://ghcr.io/v1/'
+  - &repo 'ghcr.io/bjoernpetersen/woodpecker-autoscaler'
+  - &platforms 'linux/arm64/v8,linux/amd64'
   - &golang_image 'docker.io/golang:1.25'
+
+labels:
+  forge: github
 
 steps:
   - name: vendor
@@ -21,6 +25,7 @@ steps:
     settings:
       dockerfile: docker/Dockerfile
       dry_run: true
+      registry: *registry
       repo: *repo
       platforms: *platforms
       tag: test
@@ -31,6 +36,7 @@ steps:
     image: *buildx_plugin
     settings:
       dockerfile: docker/Dockerfile
+      registry: *registry
       repo: *repo
       platforms: *platforms
       tag: next
@@ -45,6 +51,7 @@ steps:
     image: *buildx_plugin
     settings:
       dockerfile: docker/Dockerfile
+      registry: *registry
       repo: *repo
       platforms: *platforms
       tag: [latest, '${CI_COMMIT_TAG}']
