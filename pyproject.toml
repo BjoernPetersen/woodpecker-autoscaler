@@ -15,6 +15,6 @@ dependencies = [
 [tool.commitizen]
 version_provider = "pep621"
 version_scheme = "semver"
-tag_format = "$major.$minor.$patch"
+tag_format = "v$major.$minor.$patch"
 changelog_incremental = true
 update_changelog_on_bump = true
