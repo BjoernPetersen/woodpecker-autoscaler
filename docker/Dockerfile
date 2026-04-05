@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.26 AS build
+FROM golang:1.26 AS build
 
 WORKDIR /src
 COPY . .
@@ -7,7 +7,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg \
     make build
 
-FROM --platform=$BUILDPLATFORM scratch
+FROM scratch
 ENV GODEBUG="netdns=go"
 
 # copy certs from build image
