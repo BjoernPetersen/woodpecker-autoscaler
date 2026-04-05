@@ -670,6 +670,12 @@
 - Add ci test workflow [[#6](https://github.com/woodpecker-ci/autoscaler/pull/6)]
 - Add container image [[#1](https://github.com/woodpecker-ci/autoscaler/pull/1)]
 
+## v2.0.3 (2026-04-05)
+
+### Fix
+
+- remove debug logging
+
 ## v2.0.2 (2026-04-05)
 
 ### Fix
