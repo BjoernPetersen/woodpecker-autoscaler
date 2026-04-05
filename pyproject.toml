@@ -1,0 +1,20 @@
+[project]
+name = "woodpecker-autoscaler"
+version = "1.2.0"
+classifiers = [
+    "Private :: Do Not Upload",
+]
+readme = "README.md"
+
+requires-python = "==3.14.*"
+
+dependencies = [
+    "commitizen ==4.13.9",
+]
+
+[tool.commitizen]
+version_provider = "pep621"
+version_scheme = "semver"
+tag_format = "$major.$minor.$patch"
+changelog_incremental = true
+update_changelog_on_bump = true

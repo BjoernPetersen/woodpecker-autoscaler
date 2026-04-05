@@ -54,7 +54,7 @@ write_files:
       default:
         enable_ipv6: true
 runcmd:
-  - sh -xc "cd /root; docker compose up -d"
+  - sh -xc "cd /root; docker compose up"
 
 final_message: "The system is finally up, after $UPTIME seconds"
 ` // editorconfig-checker-enable
