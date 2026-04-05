@@ -31,7 +31,6 @@ jobs:
       contents: read
       packages: read
     with:
-      image-name: helm
       push-image: false
 
   post-build-container-image:
@@ -60,6 +59,5 @@ jobs:
       contents: read
       packages: write
     with:
-      image-name: helm
       push-image: true
       version: ${{ needs.bump.outputs.version }}
