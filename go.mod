@@ -11,7 +11,7 @@ require (
 	github.com/docker/go-units v0.5.0
 	github.com/hetznercloud/hcloud-go/v2 v2.37.0
 	github.com/joho/godotenv v1.5.1
-	github.com/linode/linodego v1.67.0
+	github.com/linode/linodego v1.68.0
 	github.com/rs/zerolog v1.35.0
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
 	github.com/stretchr/testify v1.11.1
@@ -19,7 +19,7 @@ require (
 	github.com/vultr/govultr/v3 v3.29.0
 	go.woodpecker-ci.org/woodpecker/v3 v3.13.0
 	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa
-	golang.org/x/net v0.52.0
+	golang.org/x/net v0.53.0
 	golang.org/x/oauth2 v0.36.0
 )
 
@@ -53,8 +53,8 @@ require (
 	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
-	golang.org/x/sys v0.42.0 // indirect
-	golang.org/x/text v0.35.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/ini.v1 v1.67.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
