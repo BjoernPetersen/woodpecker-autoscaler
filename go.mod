@@ -12,7 +12,7 @@ require (
 	github.com/hetznercloud/hcloud-go/v2 v2.37.0
 	github.com/joho/godotenv v1.5.1
 	github.com/linode/linodego v1.67.0
-	github.com/rs/zerolog v1.35.0
+	github.com/rs/zerolog v1.35.1
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.36
 	github.com/stretchr/testify v1.11.1
 	github.com/urfave/cli/v3 v3.8.0
