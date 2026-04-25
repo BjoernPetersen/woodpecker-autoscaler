@@ -8,8 +8,12 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/docker/go-units"
 	"github.com/rs/zerolog/log"
+	"github.com/scaleway/scaleway-sdk-go/api/block/v1"
+	"github.com/scaleway/scaleway-sdk-go/api/instance/v1"
 	"github.com/scaleway/scaleway-sdk-go/scw"
+	"github.com/urfave/cli/v3"
 	"go.woodpecker-ci.org/autoscaler/config"
 	"go.woodpecker-ci.org/autoscaler/engine"
 	"go.woodpecker-ci.org/woodpecker/v3/woodpecker-go/woodpecker"
