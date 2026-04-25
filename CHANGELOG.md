@@ -721,6 +721,38 @@
 - Add ci test workflow [[#6](https://github.com/woodpecker-ci/autoscaler/pull/6)]
 - Add container image [[#1](https://github.com/woodpecker-ci/autoscaler/pull/1)]
 
+## v3.0.0 (2026-04-25)
+
+### BREAKING CHANGE
+
+- either WOODPECKER_SCALEWAY_ENABLE_IPV4 or WOODPECKER_SCALEWAY_ENABLE_IPV6 (or both) need to be configured.
+
+### Feat
+
+- allow multiple labels in label filter
+- **scaleway**: use routed IPs and make IPv4 optional
+
+### Fix
+
+- add missing imports
+- update renovate config
+- build arm image for correct arch
+- remove debug logging
+- remove explicit platform from Dockerfile
+- pick the correct Dockerfile in CI
+- ignore other agents in reconciliation
+- allow setting multiple agent labels via env
+- **scaleway**: clean up IPs and volumes when deleting instance
+- **deps**: update golang deps non-major (#591)
+- **deps**: update module github.com/vultr/govultr/v3 to v3.31.1 (#589)
+- **scaleway**: tidy up scaleway volumes (#559)
+- **deps**: update golang deps non-major (#588)
+- **deps**: update golang deps non-major (#578)
+- **deps**: update golang.org/x/exp digest to 746e56f (#579)
+- **deps**: update module github.com/vultr/govultr/v3 to v3.30.0 (#576)
+- **deps**: update golang.org/x/exp digest to 7ab1446 (#560)
+- **deps**: update golang deps non-major (#575)
+
 ## v2.0.5 (2026-04-05)
 
 ### Fix
