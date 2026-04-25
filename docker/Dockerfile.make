@@ -1,6 +1,6 @@
 # docker build --rm -f docker/Dockerfile.make -t woodpecker/make:local .
 FROM docker.io/golang:1.26-alpine AS golang_image
-FROM docker.io/node:24-alpine
+FROM docker.io/node:24.15.0-alpine
 
 RUN apk add --no-cache --update make gcc binutils-gold musl-dev && \
     apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main protoc && \
