@@ -1,6 +1,6 @@
 module go.woodpecker-ci.org/autoscaler
 
-go 1.25.0
+go 1.25.10
 
 toolchain go1.26.2
 
