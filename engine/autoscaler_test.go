@@ -127,8 +127,7 @@ func Test_getQueueInfo(t *testing.T) {
 			config: &config.Config{},
 		}
 
-		free, running, pending, _ := autoscaler.getQueueInfo(t.Context())
-		assert.Equal(t, 0, free)
+		running, pending, _ := autoscaler.getQueueInfo(t.Context())
 		assert.Equal(t, 0, running)
 		assert.Equal(t, 2, pending)
 	})
