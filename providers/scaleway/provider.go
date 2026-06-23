@@ -246,7 +246,11 @@ func (p *provider) createInstance(ctx context.Context, agent *woodpecker.Agent, 
 }
 
 func (p *provider) setCloudInit(ctx context.Context, agent *woodpecker.Agent, inst *instance.Server) error {
-	ud, err := cloudinit.RenderUserDataTemplate(p.config, agent, cloudinit.RenderOption{})
+	ud, err := cloudinit.RenderUserDataTemplate(p.config, agent, cloudinit.RenderOption{
+		PostExec: []string{
+			"docker compose logs -f woodpecker-agent",
+		},
+	})
 	if err != nil {
 		return err
 	}
