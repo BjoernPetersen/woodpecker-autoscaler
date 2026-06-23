@@ -104,6 +104,9 @@ write_files:
 - path: /root/docker-compose.yml
   content: |
     # docker-compose.yml
+		networks:
+      default:
+        enable_ipv6: true
     services:
       woodpecker-agent:
         image: {{ .Image }}
@@ -116,9 +119,6 @@ write_files:
           {{- range $key, $value := .Environment }}
           - {{ $key }}={{ $value }}
           {{- end }}
-		networks:
-      default:
-        enable_ipv6: true
 
 runcmd:
   {{- range .PreExec }}
