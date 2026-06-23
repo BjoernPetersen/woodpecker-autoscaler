@@ -98,8 +98,17 @@ func (p *provider) resolveImage(ctx context.Context, api *instance.API, zone scw
 		if err != nil {
 			return "", "", fmt.Errorf("ListImages name=%s arch=%s zone=%s: %w", name, arch, zone, err)
 		}
-		if len(resp.Images) > 0 {
-			img := resp.Images[0]
+
+		for _, img := range resp.Images {
+			if img.State != instance.ImageStateAvailable {
+				continue
+			}
+
+			if strings.Contains(img.Name, "GPU OS") || strings.Contains(img.Name, "gpu-os") {
+				log.Debug().Msgf("scaleway: ignoring GPU image %s (%s)", img.Name, img.ID)
+				continue
+			}
+
 			return img.ID, img.Name, nil
 		}
 	}
