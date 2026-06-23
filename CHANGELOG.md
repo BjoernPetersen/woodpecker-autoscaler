@@ -764,6 +764,14 @@
 - Add ci test workflow [[#6](https://github.com/woodpecker-ci/autoscaler/pull/6)]
 - Add container image [[#1](https://github.com/woodpecker-ci/autoscaler/pull/1)]
 
+## v4.0.4 (2026-06-23)
+
+### Fix
+
+- ignore GPU OS images
+- change scaleway image identifier
+- retrieve more server types from scaleway api
+
 ## v4.0.3 (2026-06-23)
 
 ### Fix
