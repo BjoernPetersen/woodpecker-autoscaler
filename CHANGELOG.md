@@ -764,6 +764,12 @@
 - Add ci test workflow [[#6](https://github.com/woodpecker-ci/autoscaler/pull/6)]
 - Add container image [[#1](https://github.com/woodpecker-ci/autoscaler/pull/1)]
 
+## v4.0.3 (2026-06-23)
+
+### Fix
+
+- move around value in cloudinit
+
 ## v4.0.2 (2026-06-23)
 
 ### Fix
