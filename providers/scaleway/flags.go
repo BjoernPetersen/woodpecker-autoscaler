@@ -44,7 +44,7 @@ var ProviderFlags = []cli.Flag{
 		Usage: "Ordered list of image names (e.g. \"ubuntu_noble\", \"ubuntu_jammy\"). " +
 			"The first image that resolves for the server type's architecture wins.",
 		Sources:  cli.EnvVars("WOODPECKER_SCALEWAY_IMAGES"),
-		Value:    []string{"ubuntu_noble"},
+		Value:    []string{"ubuntu-noble"},
 		Category: category,
 	},
 	&cli.StringFlag{
