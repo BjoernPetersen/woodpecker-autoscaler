@@ -33,7 +33,8 @@ func (p *provider) resolveCandidates(ctx context.Context, rawEntries []string) e
 		}
 
 		resp, err := api.ListServersTypes(&instance.ListServersTypesRequest{
-			Zone: zone,
+			Zone:    zone,
+			PerPage: scw.Uint32Ptr(100),
 		}, scw.WithContext(ctx))
 		if err != nil {
 			return fmt.Errorf("scaleway: ListServersTypes zone=%s: %w", zone, err)
