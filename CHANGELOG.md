@@ -764,6 +764,31 @@
 - Add ci test workflow [[#6](https://github.com/woodpecker-ci/autoscaler/pull/6)]
 - Add container image [[#1](https://github.com/woodpecker-ci/autoscaler/pull/1)]
 
+## v4.0.0 (2026-06-23)
+
+### BREAKING CHANGE
+
+- either WOODPECKER_SCALEWAY_ENABLE_IPV4 or WOODPECKER_SCALEWAY_ENABLE_IPV6 (or both) need to be configured.
+
+### Feat
+
+- **scaleway**: use routed IPs and make IPv4 optional
+
+### Fix
+
+- **config**: address overly-broad `.gitignore` entry (#654)
+- **deps**: update golang deps non-major (#639)
+- **deps**: update module github.com/hetznercloud/hcloud-go/v2 to v2.41.1 (#631)
+- **deps**: update module github.com/aws/aws-sdk-go-v2/service/ec2 to v1.303.0 (#626)
+- **deps**: update module github.com/aws/aws-sdk-go-v2/service/ec2 to v1.302.0 (#623)
+- **deps**: update golang deps non-major (#622)
+- **deps**: update golang deps non-major (#621)
+- **deps**: update golang.org/x/exp digest to 74f9aab (#617)
+- **deps**: update module github.com/aws/aws-sdk-go-v2/service/ec2 to v1.300.0 (#615)
+- **deps**: update module go.woodpecker-ci.org/woodpecker/v3 to v3.14.0 (#613)
+- **deps**: update golang deps non-major (#607)
+- **deps**: update module github.com/hetznercloud/hcloud-go/v2 to v2.39.0 (#599)
+
 ## v3.0.0 (2026-04-25)
 
 ### BREAKING CHANGE
