@@ -764,6 +764,12 @@
 - Add ci test workflow [[#6](https://github.com/woodpecker-ci/autoscaler/pull/6)]
 - Add container image [[#1](https://github.com/woodpecker-ci/autoscaler/pull/1)]
 
+## v4.0.5 (2026-06-23)
+
+### Fix
+
+- respect required agent labels during autoscaling
+
 ## v4.0.4 (2026-06-23)
 
 ### Fix
