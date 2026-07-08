@@ -1,8 +1,6 @@
 module go.woodpecker-ci.org/autoscaler
 
-go 1.26.0
-
-toolchain go1.26.4
+go 1.26.5
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.42.0
