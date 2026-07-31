@@ -51,15 +51,3 @@ jobs:
     with:
       build-tool: uv
       python-version: '3.14'
-
-  push-container-image:
-    if: needs.bump.outputs.bumped == 'true' && github.ref_name == github.event.repository.default_branch
-    needs: bump
-    uses: BjoernPetersen/actions-container/.github/workflows/build-dual-image-buildah.yml@v8
-    permissions:
-      contents: read
-      packages: write
-    with:
-      containerfile: 'docker/Dockerfile'
-      push-image: true
-      version: ${{ needs.bump.outputs.version }}
