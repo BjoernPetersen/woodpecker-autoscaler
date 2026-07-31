@@ -1,0 +1,28 @@
+on:
+  push:
+    tags:
+      - v*
+
+name: Build Release
+
+permissions:
+  contents: read
+
+jobs:
+  read-version:
+    uses: BlindfoldedSurgery/actions-releases/.github/workflows/commitizen-version.yml@v5
+    with:
+      build-tool: uv
+      python-version: '3.14'
+
+  push-container-image:
+    uses: BjoernPetersen/actions-container/.github/workflows/build-dual-image-buildah.yml@v8
+    permissions:
+      contents: read
+      packages: write
+    needs:
+      - read-version
+    with:
+      containerfile: 'docker/Dockerfile'
+      push-image: true
+      version: ${{ needs.read-version.outputs.version }}
