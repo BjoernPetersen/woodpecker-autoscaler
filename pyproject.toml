@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = "==3.14.*"
 
 dependencies = [
-    "commitizen ==4.16.4",
+    "commitizen ==4.17.0",
 ]
 
 [tool.commitizen]
