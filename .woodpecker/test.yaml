@@ -5,7 +5,7 @@ labels:
   forge: github
 
 variables:
-  - &golang_image 'docker.io/golang:1.26'
+  - &golang_image 'docker.io/golang:1.27'
   - &when
     - path: &when_path # related config files
         - '.woodpecker/test.yml'
