@@ -13,7 +13,7 @@ require (
 	github.com/aws/smithy-go v1.28.1
 	github.com/digitalocean/godo v1.205.0
 	github.com/docker/go-units v0.5.0
-	github.com/equinix/equinix-sdk-go v0.66.0
+	github.com/equinix/equinix-sdk-go v0.67.0
 	github.com/gophercloud/gophercloud/v2 v2.14.0
 	github.com/hetznercloud/hcloud-go/v2 v2.47.0
 	github.com/joho/godotenv v1.5.1
