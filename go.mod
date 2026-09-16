@@ -17,7 +17,7 @@ require (
 	github.com/gophercloud/gophercloud/v2 v2.14.0
 	github.com/hetznercloud/hcloud-go/v2 v2.47.0
 	github.com/joho/godotenv v1.5.1
-	github.com/linode/linodego/v2 v2.5.0
+	github.com/linode/linodego/v2 v2.7.0
 	github.com/rs/zerolog v1.35.1
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.37
 	github.com/stretchr/testify v1.12.1
