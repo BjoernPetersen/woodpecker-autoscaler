@@ -24,7 +24,7 @@ require (
 	github.com/urfave/cli/v3 v3.11.0
 	github.com/vultr/govultr/v3 v3.32.0
 	go.woodpecker-ci.org/woodpecker/v3 v3.18.0
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 	golang.org/x/net v0.58.0
 	golang.org/x/oauth2 v0.36.0
 )
