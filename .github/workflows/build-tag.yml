@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   read-version:
-    uses: BlindfoldedSurgery/actions-releases/.github/workflows/commitizen-version.yml@v5
+    uses: BlindfoldedSurgery/actions-releases/.github/workflows/commitizen-version.yml@v6
     with:
       build-tool: uv
       python-version: '3.14'
