@@ -11,7 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.338.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.51.2
 	github.com/aws/smithy-go v1.28.3
-	github.com/digitalocean/godo v1.217.0
+	github.com/digitalocean/godo v1.223.0
 	github.com/docker/go-units v0.5.0
 	github.com/gophercloud/gophercloud/v2 v2.15.0
 	github.com/hetznercloud/hcloud-go/v2 v2.52.0
