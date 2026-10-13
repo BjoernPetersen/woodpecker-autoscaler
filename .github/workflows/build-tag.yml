@@ -13,7 +13,7 @@ jobs:
     uses: BlindfoldedSurgery/actions-releases/.github/workflows/commitizen-version.yml@v6
     with:
       build-tool: uv
-      python-version: '3.14'
+      python-version: '3.15'
 
   push-container-image:
     uses: BjoernPetersen/actions-container/.github/workflows/build-dual-image-buildah.yml@v8
