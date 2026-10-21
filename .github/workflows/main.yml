@@ -22,7 +22,7 @@ jobs:
     uses: BlindfoldedSurgery/actions-releases/.github/workflows/commitizen-check.yml@v6
     with:
       build-tool: uv
-      python-version: '3.14'
+      python-version: '3.15'
 
   build-container-image:
     if: github.event_name == 'pull_request'
