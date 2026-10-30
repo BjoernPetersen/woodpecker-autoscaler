@@ -809,6 +809,22 @@
 - Add ci test workflow [[#6](https://github.com/woodpecker-ci/autoscaler/pull/6)]
 - Add container image [[#1](https://github.com/woodpecker-ci/autoscaler/pull/1)]
 
+## v103.0.0 (2026-10-30)
+
+### BREAKING CHANGE
+
+- either WOODPECKER_SCALEWAY_ENABLE_IPV4 or WOODPECKER_SCALEWAY_ENABLE_IPV6 (or both) need to be configured.
+
+### Feat
+
+- **scaleway**: use routed IPs and make IPv4 optional
+
+### Fix
+
+- ignore GPU OS images
+- change scaleway image identifier
+- retrieve more server types from scaleway api
+
 ## v102.0.0 (2026-10-09)
 
 ### BREAKING CHANGE
