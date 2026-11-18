@@ -1,6 +1,6 @@
 [project]
 name = "woodpecker-autoscaler"
-version = "103.0.0"
+version = "103.1.0"
 classifiers = [
     "Private :: Do Not Upload",
 ]
