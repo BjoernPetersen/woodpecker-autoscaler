@@ -19,7 +19,7 @@ require (
 	github.com/linode/linodego/v2 v2.11.0
 	github.com/oracle/oci-go-sdk/v65 v65.131.0
 	github.com/rs/zerolog v1.35.1
-	github.com/scaleway/scaleway-sdk-go v1.39.0
+	github.com/scaleway/scaleway-sdk-go v1.40.1
 	github.com/stretchr/testify v1.12.1
 	github.com/urfave/cli/v3 v3.14.0
 	github.com/vultr/govultr/v3 v3.34.0
@@ -62,4 +62,5 @@ require (
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/ini.v1 v1.67.3 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
