@@ -79,6 +79,8 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/oracle/oci-go-sdk/v65 v65.131.0 h1:YGnV4us+Psks2qaW5Nm9MQLcHmXQeMYnu7m07cN7c5M=
 github.com/oracle/oci-go-sdk/v65 v65.131.0/go.mod h1:87yiCsoPSaOZkpt5KIEEThoSirgT8WolahE3I5/qz78=
+github.com/oracle/oci-go-sdk/v65 v65.132.0 h1:p5OUSPfLlvKSZcTHIjC4AbQAU+5MdJ7fDP3SJJkoZ0A=
+github.com/oracle/oci-go-sdk/v65 v65.132.0/go.mod h1:87yiCsoPSaOZkpt5KIEEThoSirgT8WolahE3I5/qz78=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/prometheus/client_golang v1.25.0 h1:cDtW1TcFsMi1RJc8khwCKB4VhzwV04aKqbYtNOXuiK0=
 github.com/prometheus/client_golang v1.25.0/go.mod h1:j2X/4/kaQHLPnmyEU8zjmkndo1T317VpCIQEml8LTKk=
